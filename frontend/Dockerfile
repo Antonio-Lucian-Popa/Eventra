@@ -23,6 +23,7 @@ ENV NEXT_PUBLIC_BASE_PATH=$NEXT_PUBLIC_BASE_PATH
 COPY --from=builder /app/.next ./.next
 RUN mkdir -p ./public
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/next.config.mjs ./next.config.mjs
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 EXPOSE 3000
