@@ -828,16 +828,124 @@ td {
   }
 
   .calendar-grid {
-    min-width: 760px;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    min-width: 0;
   }
 
   .calendar-scroll,
   .table-scroll {
+    width: 100%;
+    max-width: 100%;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .calendar-shell {
+    padding: 14px !important;
+    overflow: hidden;
+  }
+
+  .calendar-toolbar {
+    display: grid;
+    gap: 12px;
+  }
+
+  .calendar-toolbar .toolbar {
+    display: flex;
+    width: 100%;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .calendar-toolbar .toolbar .btn {
+    width: auto;
+    min-width: 118px;
+    flex: 0 0 auto;
+  }
+
+  .weekday {
+    min-height: 34px;
+    font-size: 11px;
   }
 
   .day-cell {
-    min-height: 102px;
+    min-height: 88px;
+    padding: 5px;
+  }
+
+  .cal-event {
+    padding: 5px;
+    font-size: 9px;
+    overflow-wrap: anywhere;
+  }
+
+  .table-card {
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .table-tools {
+    padding: 14px;
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .table-tools .input,
+  .table-tools .btn {
+    width: 100%;
+    min-width: 0;
+  }
+
+  table {
+    min-width: 0;
+    display: block;
+  }
+
+  thead {
+    display: none;
+  }
+
+  tbody {
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  tr {
+    display: grid;
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #fff;
+  }
+
+  td {
+    display: grid;
+    grid-template-columns: minmax(88px, 0.42fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 10px;
+    padding: 0;
+    border: 0;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+  }
+
+  td::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 850;
+  }
+
+  td[data-label=""]::before {
+    content: "Acțiuni";
+  }
+
+  td .badge,
+  td .btn {
+    max-width: 100%;
   }
 
   .mobile-bar {
