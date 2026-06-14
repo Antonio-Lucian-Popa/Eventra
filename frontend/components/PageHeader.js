@@ -31,19 +31,14 @@ export default function PageHeader({ title, subtitle, actionLabel = 'Eveniment n
               <Plus size={16} />
               {actionLabel}
             </button>
-            <div style={{ position: 'relative' }} ref={bellRef}>
-              <button className="btn icon" aria-label="Notificări" onClick={() => setBell((b) => !b)}>
+            <div className="notification-wrap" ref={bellRef}>
+              <button className={`btn icon notification-button ${bell ? 'active' : ''}`} aria-label="Notificări" onClick={() => setBell((b) => !b)}>
                 <Bell size={17} />
               </button>
               {bell && (
-                <div style={{
-                  position: 'absolute', right: 0, top: '110%',
-                  background: 'var(--surface)', border: '1px solid var(--border)',
-                  borderRadius: 8, padding: '12px 16px', zIndex: 50,
-                  minWidth: 220, boxShadow: '0 4px 16px rgba(0,0,0,.15)',
-                  fontSize: 13, color: 'var(--muted)',
-                }}>
-                  Nicio notificare nouă.
+                <div className="notification-popover">
+                  <div className="row-title">Notificări</div>
+                  <div className="row-subtitle">Nicio notificare nouă.</div>
                 </div>
               )}
             </div>

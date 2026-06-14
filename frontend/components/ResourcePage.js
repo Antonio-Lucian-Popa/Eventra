@@ -69,7 +69,6 @@ export default function ResourcePage({
 
   useEffect(() => {
     load(1, search);
-    setPage(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
