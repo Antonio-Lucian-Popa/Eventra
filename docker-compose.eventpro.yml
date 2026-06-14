@@ -4,15 +4,15 @@ services:
     container_name: eventpro-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-eveniment}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-eveniment}
-      POSTGRES_DB: ${POSTGRES_DB:-eveniment_app}
+      POSTGRES_USER: eveniment
+      POSTGRES_PASSWORD: eveniment_demo_2026
+      POSTGRES_DB: eveniment_app
     volumes:
       - eventpro_postgres_data:/var/lib/postgresql/data
     networks:
       - internal
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-eveniment}"]
+      test: ["CMD-SHELL", "pg_isready -U eveniment"]
       interval: 10s
       retries: 5
 
@@ -27,16 +27,16 @@ services:
         condition: service_healthy
     environment:
       PORT: 4000
-      DATABASE_URL: postgresql://${POSTGRES_USER:-eveniment}:${POSTGRES_PASSWORD:-eveniment}@postgres:5432/${POSTGRES_DB:-eveniment_app}
-      JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: postgresql://eveniment:eveniment_demo_2026@postgres:5432/eveniment_app
+      JWT_SECRET: f4931f63bec89c56b2774ab17ee54e10c7c937778a51cf60df0a24188b256fb2
       APP_URL: https://novabytecode.ro/eventpro
       CORS_ORIGINS: https://novabytecode.ro
-      SMTP_HOST: ${SMTP_HOST:-}
-      SMTP_PORT: ${SMTP_PORT:-587}
-      SMTP_USER: ${SMTP_USER:-}
-      SMTP_PASS: ${SMTP_PASS:-}
-      SMTP_FROM: ${SMTP_FROM:-no-reply@novabytecode.ro}
-    command: sh -c "npx prisma migrate deploy && npm start"
+      SMTP_HOST: ""
+      SMTP_PORT: "587"
+      SMTP_USER: ""
+      SMTP_PASS: ""
+      SMTP_FROM: no-reply@novabytecode.ro
+    command: sh -c "npx prisma migrate deploy && node prisma/seed.js && npm start"
     networks:
       - internal
       - novabyte_default
