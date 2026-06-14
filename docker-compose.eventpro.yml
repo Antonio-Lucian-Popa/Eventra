@@ -46,11 +46,15 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: https://novabytecode.ro/eventpro/api
+        NEXT_PUBLIC_API_URL: /eventpro/api
+        NEXT_PUBLIC_BASE_PATH: /eventpro
     container_name: eventpro-frontend
     restart: unless-stopped
     depends_on:
       - api
+    environment:
+      NEXT_PUBLIC_API_URL: /eventpro/api
+      NEXT_PUBLIC_BASE_PATH: /eventpro
     networks:
       - nova-net
 
