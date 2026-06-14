@@ -1,0 +1,43 @@
+services:
+  app:
+    build: .
+    image: stripe-payments-service:latest
+    restart: unless-stopped
+    ports:
+      - '${PORT:-3000}:3000'
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      STRIPE_API_VERSION: ${STRIPE_API_VERSION:-}
+      API_KEYS: ${API_KEYS}
+      WEBHOOK_FORWARDS: ${WEBHOOK_FORWARDS:-}
+      WEBHOOK_FORWARD_URL: ${WEBHOOK_FORWARD_URL:-}
+      WEBHOOK_FORWARD_SECRET: ${WEBHOOK_FORWARD_SECRET:-}
+      DATABASE_URL: postgres://stripe:${POSTGRES_PASSWORD:-stripe}@db:5432/stripe_payments
+      DEFAULT_CURRENCY: ${DEFAULT_CURRENCY:-ron}
+      DEFAULT_SUCCESS_URL: ${DEFAULT_SUCCESS_URL:-}
+      DEFAULT_CANCEL_URL: ${DEFAULT_CANCEL_URL:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: stripe
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-stripe}
+      POSTGRES_DB: stripe_payments
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U stripe -d stripe_payments']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:

@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: eveniment-app-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: eveniment
+      POSTGRES_PASSWORD: eveniment
+      POSTGRES_DB: eveniment_app
+    ports:
+      - "5432:5432"
+    volumes:
+      - eveniment_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  eveniment_postgres_data:
