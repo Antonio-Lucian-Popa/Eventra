@@ -14,7 +14,9 @@ function sameCalendarDay(a, b) {
 
 function overlaps(aStart, aEnd, bStart, bEnd) {
   if (aStart == null || aEnd == null || bStart == null || bEnd == null) return true;
-  return aStart < bEnd && bStart < aEnd;
+  const normalizedAEnd = aEnd <= aStart ? aEnd + 1440 : aEnd;
+  const normalizedBEnd = bEnd <= bStart ? bEnd + 1440 : bEnd;
+  return aStart < normalizedBEnd && bStart < normalizedAEnd;
 }
 
 export async function assertNoVenueConflict({ organizationId, venueId, eventDate, startTime, endTime, ignoreEventId }) {

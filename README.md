@@ -2,6 +2,8 @@
 
 Backend MVP pentru SaaS de management evenimente HoReCa: locații, clienți, lead-uri, evenimente, calendar, oferte, contracte, facturi, plăți, task-uri și dashboard.
 
+Frontend-ul Next.js este în folderul `frontend/`.
+
 ## Ce am găsit
 
 În `eveniment-app` exista serviciul `stripe-payments-service`, un microserviciu Express pentru Stripe cu API key auth, checkout sessions, payment intents, subscriptions, portal și webhook forwarding. L-am păstrat separat și îl refolosesc din backend-ul principal prin `POST /payments/create-checkout-session`.
@@ -58,10 +60,48 @@ npm run dev
 
 Serverul pornește pe `http://localhost:4000`.
 
+## Pornire Frontend
+
+```bash
+cd frontend
+npm install
+cp .env.example .env.local
+npm run dev
+```
+
+Frontend-ul pornește pe `http://localhost:3000`.
+
+Frontend-ul include auth guard, refresh token automat, CRUD-uri pentru modulele principale, calendar conectat la API, acțiuni PDF și pagină de setări/invitații.
+
+Plățile Stripe folosesc Stripe-hosted Checkout: frontend-ul cere sesiunea de checkout de la backend și redirecționează browserul către `checkoutSession.url`. Nu colectăm carduri în UI-ul nostru.
+
+Pentru email real la invitații/reset password configurează `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` și `APP_URL` în `.env`.
+
+Deployment Docker este documentat în [DEPLOYMENT.md](/home/nova/Desktop/eveniment-app/DEPLOYMENT.md).
+
 Conturi demo:
 
 - `admin@eveniment.local` / `Admin123!`
 - `manager@eveniment.local` / `Manager123!`
+- `staff@eveniment.local` / `Staff123!`
+
+Seed-ul demo creează date realiste pentru prezentare:
+
+- 4 locații/saloane
+- 12 clienți
+- 8 lead-uri
+- 12 evenimente pe calendar
+- 8 oferte
+- 10 contracte
+- 12 facturi
+- 21 plăți
+- 48 task-uri/checklist
+
+Pentru resetarea datelor demo:
+
+```bash
+DATABASE_URL="postgresql://eveniment:eveniment@localhost:5432/eveniment_app" npm run db:seed
+```
 
 ## Auth avansat
 

@@ -9,6 +9,7 @@ import { validate } from '../../middleware/validate.js';
 import { requireAuth, requireRoles } from '../../middleware/auth.js';
 import { addDays, addMinutes, createOpaqueToken, hashToken } from '../../lib/security.js';
 import { audit } from '../../lib/audit.js';
+import { sendInvitationEmail, sendPasswordResetEmail } from '../../lib/mailer.js';
 
 const router = Router();
 const publicUser = {
@@ -136,7 +137,8 @@ router.post(
     await prisma.passwordResetToken.create({
       data: { userId: user.id, tokenHash: hashToken(token), expiresAt: addMinutes(config.jwt.passwordResetMinutes) },
     });
-    res.json({ data: { sent: true, resetToken: config.isProd ? undefined : token } });
+    const mail = await sendPasswordResetEmail({ to: user.email, token });
+    res.json({ data: { sent: true, emailSent: mail.sent, resetToken: config.isProd || mail.sent ? undefined : token } });
   }),
 );
 
@@ -175,8 +177,9 @@ router.post(
       },
       select: { id: true, email: true, role: true, expiresAt: true, createdAt: true },
     });
+    const mail = await sendInvitationEmail({ to: invitation.email, token, role: invitation.role });
     await audit(req, { action: 'invite_user', entity: 'invitation', entityId: invitation.id, metadata: { email: invitation.email, role: invitation.role } });
-    sendCreated(res, { invitation, invitationToken: config.isProd ? undefined : token });
+    sendCreated(res, { invitation, emailSent: mail.sent, invitationToken: config.isProd || mail.sent ? undefined : token });
   }),
 );
 
