@@ -1,0 +1,64 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: eventpro-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-eveniment}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-eveniment}
+      POSTGRES_DB: ${POSTGRES_DB:-eveniment_app}
+    volumes:
+      - eventpro_postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-eveniment}"]
+      interval: 10s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: eventpro-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PORT: 4000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-eveniment}:${POSTGRES_PASSWORD:-eveniment}@postgres:5432/${POSTGRES_DB:-eveniment_app}
+      JWT_SECRET: ${JWT_SECRET}
+      APP_URL: https://novabytecode.ro/eventpro
+      CORS_ORIGINS: https://novabytecode.ro
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-no-reply@novabytecode.ro}
+    command: sh -c "npx prisma migrate deploy && npm start"
+    networks:
+      - internal
+      - novabyte_default
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://novabytecode.ro/eventpro/api
+    container_name: eventpro-frontend
+    restart: unless-stopped
+    depends_on:
+      - api
+    networks:
+      - novabyte_default
+
+volumes:
+  eventpro_postgres_data:
+
+networks:
+  internal:
+    driver: bridge
+  novabyte_default:
+    external: true
