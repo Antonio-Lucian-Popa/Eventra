@@ -7,6 +7,7 @@ const nextConfig = {
   reactStrictMode: true,
   basePath: isProd ? '/eventpro' : '',
   assetPrefix: isProd ? '/eventpro' : '',
+  trailingSlash: true,
   turbopack: {
     root: path.resolve(process.cwd()),
   },
