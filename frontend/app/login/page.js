@@ -18,7 +18,8 @@ export default function LoginPage() {
     setError('');
     try {
       await login(email, password);
-      router.push('/');
+      router.replace('/');
+      router.refresh();
     } catch (err) {
       setSession({
         token: 'demo-token',
@@ -26,7 +27,10 @@ export default function LoginPage() {
         user: { name: 'Andrei Popescu', email, role: 'admin' },
       });
       setError(`${err.message} Am pornit modul demo local.`);
-      setTimeout(() => router.push('/'), 500);
+      setTimeout(() => {
+        router.replace('/');
+        router.refresh();
+      }, 500);
     }
   }
 

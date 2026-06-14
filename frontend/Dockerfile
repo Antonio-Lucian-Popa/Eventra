@@ -6,7 +6,9 @@ RUN npm ci
 FROM node:22-alpine AS builder
 WORKDIR /app
 ARG NEXT_PUBLIC_API_URL=http://localhost:4000
+ARG NEXT_PUBLIC_BASE_PATH=
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_BASE_PATH=$NEXT_PUBLIC_BASE_PATH
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
@@ -14,6 +16,10 @@ RUN npm run build
 FROM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+ARG NEXT_PUBLIC_API_URL=http://localhost:4000
+ARG NEXT_PUBLIC_BASE_PATH=
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_BASE_PATH=$NEXT_PUBLIC_BASE_PATH
 COPY --from=builder /app/.next ./.next
 RUN mkdir -p ./public
 COPY --from=builder /app/public ./public
