@@ -80,7 +80,7 @@ export default function CalendarPage() {
 
   return (
     <AppShell>
-      <PageHeader title="Calendar - Locații" subtitle="Vizualizează evenimentele pe toate locațiile">
+      <PageHeader title="Calendar - Locații" subtitle="Vizualizează evenimentele pe toate locațiile" actionsClassName="calendar-nav">
         <button className="btn icon" aria-label="Înapoi" onClick={prevMonth}>
           <ChevronLeft size={16} />
         </button>

@@ -777,24 +777,41 @@ td {
     line-height: 1.35;
   }
 
-  .toolbar {
+  .page-header .toolbar {
     width: 100%;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 44px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
     gap: 10px;
   }
 
-  .toolbar .btn {
+  .page-header .toolbar .btn {
     height: 42px;
   }
 
-  .toolbar .btn.primary {
+  .page-header .toolbar .btn.primary {
+    flex: 1 1 220px;
     min-width: 0;
     width: 100%;
   }
 
-  .toolbar .btn.icon {
+  .page-header .toolbar .btn.icon {
+    flex: 0 0 44px;
     width: 44px;
+  }
+
+  .page-header .toolbar .btn:not(.primary):not(.icon) {
+    flex: 1 1 140px;
+    min-width: 0;
+  }
+
+  .page-header .calendar-nav {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
+  }
+
+  .page-header .calendar-nav .btn {
+    width: 100%;
   }
 
   .notification-wrap {
@@ -889,6 +906,14 @@ td {
     padding: 14px;
     display: grid;
     grid-template-columns: 1fr;
+  }
+
+  .table-tools .toolbar {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 20px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
   }
 
   .table-tools .input,

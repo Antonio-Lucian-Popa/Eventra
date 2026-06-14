@@ -4,7 +4,7 @@ import { Bell, Plus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function PageHeader({ title, subtitle, actionLabel = 'Eveniment nou', children }) {
+export default function PageHeader({ title, subtitle, actionLabel = 'Eveniment nou', actionsClassName = '', children }) {
   const router = useRouter();
   const [bell, setBell] = useState(false);
   const bellRef = useRef(null);
@@ -24,7 +24,7 @@ export default function PageHeader({ title, subtitle, actionLabel = 'Eveniment n
         <h1 className="title">{title}</h1>
         {subtitle ? <div className="eyebrow">{subtitle}</div> : null}
       </div>
-      <div className="toolbar">
+      <div className={`toolbar ${actionsClassName}`}>
         {children !== undefined ? children : (
           <>
             <button className="btn primary" onClick={() => router.push('/events')}>
