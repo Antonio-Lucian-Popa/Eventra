@@ -25,6 +25,11 @@ const schema = z.object({
   STRIPE_WEBHOOK_FORWARD_SECRET: z.string().optional(),
   PAYMENTS_SUCCESS_URL: z.string().url().optional(),
   PAYMENTS_CANCEL_URL: z.string().url().optional(),
+  // e-Factura / ANAF SPV integration
+  EFACTURA_API_URL: z.string().url().default('http://localhost:8000'),
+  EFACTURA_API_KEY: z.string().default(''),
+  EFACTURA_WEBHOOK_SECRET: z.string().optional(),
+  EFACTURA_DEFAULT_VAT_RATE: z.coerce.number().min(0).max(100).default(19),
 });
 
 const parsed = schema.safeParse(process.env);
@@ -73,5 +78,11 @@ export const config = {
     webhookForwardSecret: env.STRIPE_WEBHOOK_FORWARD_SECRET,
     successUrl: env.PAYMENTS_SUCCESS_URL,
     cancelUrl: env.PAYMENTS_CANCEL_URL,
+  },
+  efactura: {
+    url: env.EFACTURA_API_URL,
+    apiKey: env.EFACTURA_API_KEY,
+    webhookSecret: env.EFACTURA_WEBHOOK_SECRET,
+    defaultVatRate: env.EFACTURA_DEFAULT_VAT_RATE,
   },
 };
