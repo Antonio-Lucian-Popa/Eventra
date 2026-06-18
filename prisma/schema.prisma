@@ -65,6 +65,14 @@ enum InvoiceStatus {
   cancelled
 }
 
+enum EfacturaStatus {
+  not_submitted
+  submitted
+  accepted
+  rejected
+  error
+}
+
 enum PaymentMethod {
   cash
   bank_transfer
@@ -104,24 +112,31 @@ model User {
 }
 
 model Organization {
-  id              String           @id @default(uuid())
-  name            String
-  slug            String           @unique
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  users           User[]
-  venues          Venue[]
-  clients         Client[]
-  leads           Lead[]
-  events          Event[]
-  offers          Offer[]
-  contracts       Contract[]
-  invoices        Invoice[]
-  payments        Payment[]
-  eventTasks      EventTask[]
-  invitations     Invitation[]
-  auditLogs       AuditLog[]
-  numberSequences NumberSequence[]
+  id                String           @id @default(uuid())
+  name              String
+  slug              String           @unique
+  cif               String?          // CUI/CIF firma (ex: "17042060")
+  street            String?          // adresa sediu
+  city              String?
+  county            String?          // cod judet UBL (ex: "RO-B", "RO-BC")
+  iban              String?          // pentru payment_means in UBL
+  bankName          String?
+  efacturaCompanyId String?          // ID Company in e-factura-api (setat o singura data)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  users             User[]
+  venues            Venue[]
+  clients           Client[]
+  leads             Lead[]
+  events            Event[]
+  offers            Offer[]
+  contracts         Contract[]
+  invoices          Invoice[]
+  payments          Payment[]
+  eventTasks        EventTask[]
+  invitations       Invitation[]
+  auditLogs         AuditLog[]
+  numberSequences   NumberSequence[]
 }
 
 model RefreshToken {
@@ -162,7 +177,7 @@ model Invitation {
 }
 
 model AuditLog {
-  id             String       @id @default(uuid())
+  id             String        @id @default(uuid())
   organizationId String?
   userId         String?
   action         String
@@ -171,9 +186,9 @@ model AuditLog {
   metadata       Json?
   ip             String?
   userAgent      String?
-  createdAt      DateTime     @default(now())
+  createdAt      DateTime      @default(now())
   organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  user           User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user           User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([organizationId, createdAt])
   @@index([entity, entityId])
@@ -193,38 +208,42 @@ model NumberSequence {
 }
 
 model Venue {
-  id          String      @id @default(uuid())
+  id             String       @id @default(uuid())
   organizationId String
-  name        String
-  address     String
-  capacity    Int
-  description String?
-  status      VenueStatus @default(active)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  deletedAt   DateTime?
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  events      Event[]
-  offers      Offer[]
+  name           String
+  address        String
+  capacity       Int
+  description    String?
+  status         VenueStatus  @default(active)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  events         Event[]
+  offers         Offer[]
 }
 
 model Client {
-  id        String     @id @default(uuid())
+  id             String     @id @default(uuid())
   organizationId String
-  fullName  String
-  phone     String
-  email     String?
-  notes     String?
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  deletedAt DateTime?
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  leads     Lead[]
-  events    Event[]
-  offers    Offer[]
-  contracts Contract[]
-  invoices  Invoice[]
-  payments  Payment[]
+  fullName       String
+  phone          String
+  email          String?
+  notes          String?
+  cif            String?    // CUI client B2B (optional, persoane fizice nu au)
+  street         String?
+  city           String?
+  county         String?    // cod judet UBL (ex: "RO-B")
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  deletedAt      DateTime?
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  leads          Lead[]
+  events         Event[]
+  offers         Offer[]
+  contracts      Contract[]
+  invoices       Invoice[]
+  payments       Payment[]
 }
 
 model Lead {
@@ -319,22 +338,29 @@ model Contract {
 }
 
 model Invoice {
-  id            String        @id @default(uuid())
-  organizationId String
-  eventId       String
-  clientId      String
-  invoiceNumber String
-  amount        Decimal       @db.Decimal(12, 2)
-  status        InvoiceStatus @default(unpaid)
-  dueDate       DateTime?
-  fileUrl       String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  deletedAt     DateTime?
-  organization  Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  event         Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  client        Client        @relation(fields: [clientId], references: [id], onDelete: Restrict)
-  payments      Payment[]
+  id                   String         @id @default(uuid())
+  organizationId       String
+  eventId              String
+  clientId             String
+  invoiceNumber        String
+  amount               Decimal        @db.Decimal(12, 2)
+  status               InvoiceStatus  @default(unpaid)
+  dueDate              DateTime?
+  fileUrl              String?
+  // campuri e-factura / ANAF SPV
+  vatRate              Decimal?       @db.Decimal(5, 2)   // ex: 19.00 (procent TVA)
+  items                Json?          // linii factura detaliate (optional)
+  efacturaStatus       EfacturaStatus @default(not_submitted)
+  efacturaUploadIndex  String?        // index_incarcare ANAF
+  efacturaMessageId    String?        // id mesaj in SPV (dupa procesare)
+  efacturaError        String?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  deletedAt            DateTime?
+  organization         Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  event                Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  client               Client         @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  payments             Payment[]
 
   @@unique([organizationId, invoiceNumber])
 }
@@ -362,18 +388,18 @@ model Payment {
 }
 
 model EventTask {
-  id          String     @id @default(uuid())
+  id             String     @id @default(uuid())
   organizationId String
-  eventId     String
-  title       String
-  description String?
-  status      TaskStatus @default(todo)
-  dueDate     DateTime?
-  assignedTo  String?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  deletedAt   DateTime?
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  event       Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  assignee    User?      @relation("AssignedTasks", fields: [assignedTo], references: [id], onDelete: SetNull)
+  eventId        String
+  title          String
+  description    String?
+  status         TaskStatus @default(todo)
+  dueDate        DateTime?
+  assignedTo     String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  deletedAt      DateTime?
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  event          Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  assignee       User?      @relation("AssignedTasks", fields: [assignedTo], references: [id], onDelete: SetNull)
 }
