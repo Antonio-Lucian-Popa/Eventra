@@ -11,6 +11,8 @@ enum UserRole {
   admin
   manager
   staff
+  sales
+  worker
 }
 
 enum VenueStatus {
@@ -39,6 +41,7 @@ enum EventType {
 
 enum EventStatus {
   draft
+  preconfirmed
   confirmed
   in_preparation
   completed
@@ -109,6 +112,7 @@ model User {
   passwordResetTokens PasswordResetToken[]
   sentInvitations     Invitation[]         @relation("SentInvitations")
   auditLogs           AuditLog[]
+  deviceTokens        DeviceToken[]
 }
 
 model Organization {
@@ -279,6 +283,8 @@ model Event {
   depositAmount   Decimal      @default(0) @db.Decimal(12, 2)
   paidAmount      Decimal      @default(0) @db.Decimal(12, 2)
   remainingAmount Decimal      @default(0) @db.Decimal(12, 2)
+  preconfirmedAt     DateTime?
+  preconfirmExpiresAt DateTime?
   notes           String?
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
@@ -326,6 +332,9 @@ model Contract {
   contractNumber String
   status         ContractStatus @default(draft)
   signedAt       DateTime?
+  signatureData  String?        // semnatura clientului salvata ca imagine base64 (data URL PNG)
+  signerName     String?        // numele cu care s-a semnat in aplicatie
+  signerIp       String?        // IP-ul de la care s-a semnat (audit)
   fileUrl        String?
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
@@ -385,6 +394,18 @@ model Payment {
   client            Client        @relation(fields: [clientId], references: [id], onDelete: Restrict)
 
   @@index([externalPaymentId])
+}
+
+model DeviceToken {
+  id         String   @id @default(uuid())
+  userId     String
+  token      String   @unique
+  platform   String   @default("expo") // expo | fcm | apns | web
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model EventTask {

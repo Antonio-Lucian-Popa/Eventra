@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import StatusBadge from '../components/StatusBadge';
+import ContractSignButton from '../components/ContractSignButton';
 import { demoClients, demoEvents, demoInvoices, demoVenues } from './demo-data';
 import { apiRequest, createResource } from './api';
 
@@ -11,7 +12,7 @@ const eventTypes = [
   ['other', 'Altul'],
 ].map(([value, label]) => ({ value, label }));
 
-const eventStatuses = ['draft', 'confirmed', 'in_preparation', 'completed', 'cancelled'].map((value) => ({ value, label: value }));
+const eventStatuses = ['draft', 'preconfirmed', 'confirmed', 'in_preparation', 'completed', 'cancelled'].map((value) => ({ value, label: value }));
 const offerStatuses = ['draft', 'sent', 'accepted', 'rejected'].map((value) => ({ value, label: value }));
 const invoiceStatuses = ['unpaid', 'partially_paid', 'paid', 'cancelled'].map((value) => ({ value, label: value }));
 const paymentStatuses = ['pending', 'succeeded', 'failed', 'refunded'].map((value) => ({ value, label: value }));
@@ -187,20 +188,7 @@ export const resourceConfigs = {
     ],
     rowActions: (row, reload, setError) => (
       <>
-        <button
-          className="btn"
-          type="button"
-          onClick={async () => {
-            try {
-              await apiRequest(`/contracts/${row.id}/mark-signed`, { method: 'POST', body: JSON.stringify({}) });
-              await reload();
-            } catch (err) {
-              setError(err.message);
-            }
-          }}
-        >
-          Semnează
-        </button>
+        <ContractSignButton contract={row} reload={reload} setError={setError} />
         <button
           className="btn"
           type="button"
@@ -214,6 +202,22 @@ export const resourceConfigs = {
           }}
         >
           PDF
+        </button>
+        <button
+          className="btn primary"
+          type="button"
+          onClick={async () => {
+            try {
+              await apiRequest(`/contracts/${row.id}/create-invoice`, { method: 'POST', body: JSON.stringify({}) });
+              setError('');
+              window.alert('Factura a fost generată din contract. O găsești în secțiunea Facturi.');
+              await reload();
+            } catch (err) {
+              setError(err.message);
+            }
+          }}
+        >
+          Factură
         </button>
       </>
     ),

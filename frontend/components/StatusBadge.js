@@ -1,5 +1,7 @@
 const statusMap = {
   confirmed: ['green', 'Confirmat'],
+  preconfirmed: ['red', 'Preconfirmat'],
+  signed: ['green', 'Semnat'],
   in_preparation: ['blue', 'În pregătire'],
   completed: ['green', 'Finalizat'],
   cancelled: ['red', 'Anulat'],

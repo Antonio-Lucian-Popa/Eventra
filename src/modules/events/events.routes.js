@@ -8,6 +8,9 @@ import { eventAmounts } from '../../utils/accounting.js';
 import { idParam, listQuery, optionalDate, partialBody, requiredDate, money } from '../../utils/schemas.js';
 import { assertNoVenueConflict } from '../../lib/businessRules.js';
 import { requireRoles } from '../../middleware/auth.js';
+import { config } from '../../config/env.js';
+import { sendPreconfirmationEmail } from '../../lib/mailer.js';
+import { audit } from '../../lib/audit.js';
 
 const router = Router();
 
@@ -20,7 +23,7 @@ const eventSchema = z.object({
   startTime: z.string().optional().nullable(),
   endTime: z.string().optional().nullable(),
   guestsCount: z.coerce.number().int().positive(),
-  status: z.enum(['draft', 'confirmed', 'in_preparation', 'completed', 'cancelled']).default('draft'),
+  status: z.enum(['draft', 'preconfirmed', 'confirmed', 'in_preparation', 'completed', 'cancelled']).default('draft'),
   totalAmount: money.default(0),
   depositAmount: money.default(0),
   paidAmount: money.default(0),
@@ -59,6 +62,58 @@ router.get(
       orderBy: [{ eventDate: 'asc' }, { startTime: 'asc' }],
     });
     res.json({ data: events });
+  }),
+);
+
+// Preconfirmare: se pleaca din calendar, se aloca provizoriu locul si se trimite
+// clientului un email cu termenul limita in care trebuie sa vina la locatie sa confirme.
+router.post(
+  '/:id/preconfirm',
+  requireRoles('admin', 'manager'),
+  validate({
+    params: idParam,
+    body: z.object({ hours: z.coerce.number().int().positive().max(720).optional() }).default({}),
+    query: z.object({}),
+  }),
+  asyncHandler(async (req, res) => {
+    const hours = req.validated.body.hours ?? config.preconfirmHours;
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + hours * 60 * 60 * 1000);
+    const event = await prisma.event.update({
+      where: { id: req.validated.params.id, organizationId: req.user.organizationId, deletedAt: null },
+      data: { status: 'preconfirmed', preconfirmedAt: now, preconfirmExpiresAt: expiresAt },
+      include: { client: true, venue: true },
+    });
+    let emailSent = false;
+    if (event.client?.email) {
+      const mail = await sendPreconfirmationEmail({
+        to: event.client.email,
+        clientName: event.client.fullName,
+        eventTitle: event.title,
+        venueName: event.venue?.name,
+        eventDate: event.eventDate,
+        expiresAt,
+      });
+      emailSent = mail.sent;
+    }
+    await audit(req, { action: 'preconfirm', entity: 'event', entityId: event.id, metadata: { expiresAt } });
+    res.json({ data: event, emailSent });
+  }),
+);
+
+// Confirmare: clientul a venit la locatie, evenimentul devine complet (confirmed).
+router.post(
+  '/:id/confirm',
+  requireRoles('admin', 'manager'),
+  validate({ params: idParam, body: z.object({}).default({}), query: z.object({}) }),
+  asyncHandler(async (req, res) => {
+    const event = await prisma.event.update({
+      where: { id: req.validated.params.id, organizationId: req.user.organizationId, deletedAt: null },
+      data: { status: 'confirmed', preconfirmExpiresAt: null },
+      include: { client: true, venue: true },
+    });
+    await audit(req, { action: 'confirm', entity: 'event', entityId: event.id });
+    res.json({ data: event });
   }),
 );
 

@@ -1,10 +1,10 @@
 'use client';
 
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import AppShell from '../../components/AppShell';
 import PageHeader from '../../components/PageHeader';
-import { apiFetch } from '../../lib/api';
+import { apiFetch, apiRequest } from '../../lib/api';
 
 const WEEKDAYS = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
 const MONTHS_RO = ['Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie', 'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie'];
@@ -53,17 +53,19 @@ export default function CalendarPage() {
     else setMonth((m) => m + 1);
   }
 
-  useEffect(() => {
+  const loadEvents = useCallback(() => {
     const mm = String(month + 1).padStart(2, '0');
     const lastDay = new Date(year, month + 1, 0).getDate();
     apiFetch(`/events/calendar?startDate=${year}-${mm}-01&endDate=${year}-${mm}-${lastDay}`)
       .then((items) => {
         if (items?.length) {
           setEvents(items.map((e) => ({
+            id: e.id,
             day: new Date(e.eventDate).getDate(),
             title: e.title,
             venue: e.venue?.name || 'Locație',
             type: e.eventType,
+            status: e.status,
           })));
         } else {
           setEvents(DEMO_EVENTS);
@@ -71,6 +73,28 @@ export default function CalendarPage() {
       })
       .catch(() => setEvents(DEMO_EVENTS));
   }, [year, month]);
+
+  useEffect(() => {
+    loadEvents();
+  }, [loadEvents]);
+
+  // Din calendar se face preconfirmarea (aloca provizoriu locul + email cu termen limita),
+  // iar dupa ce clientul vine la locatie se confirma evenimentul complet.
+  async function toggleEvent(ev) {
+    if (!ev.id) return;
+    const isPreconfirmed = ev.status === 'preconfirmed';
+    const action = isPreconfirmed ? 'confirm' : 'preconfirm';
+    const message = isPreconfirmed
+      ? `Confirmi definitiv evenimentul "${ev.title}"?`
+      : `Preconfirmi evenimentul "${ev.title}"? Clientul va primi un email cu termenul limită să vină la locație.`;
+    if (!window.confirm(message)) return;
+    try {
+      await apiRequest(`/events/${ev.id}/${action}`, { method: 'POST', body: JSON.stringify({}) });
+      loadEvents();
+    } catch (err) {
+      window.alert(err.message);
+    }
+  }
 
   const cells = useMemo(() => buildCells(year, month), [year, month]);
   const filtered = useMemo(
@@ -127,8 +151,20 @@ export default function CalendarPage() {
                 {cell.current && filtered
                   .filter((e) => e.day === cell.day)
                   .map((e) => (
-                    <div className={`cal-event ${e.type || ''}`} key={`${cell.day}-${e.title}`}>
-                      {e.title}
+                    <div
+                      className={`cal-event ${e.status === 'preconfirmed' ? 'preconfirmed' : e.type || ''}${e.id ? ' clickable' : ''}`}
+                      key={e.id || `${cell.day}-${e.title}`}
+                      onClick={e.id ? () => toggleEvent(e) : undefined}
+                      role={e.id ? 'button' : undefined}
+                      title={
+                        e.id
+                          ? e.status === 'preconfirmed'
+                            ? 'Click pentru a confirma evenimentul'
+                            : 'Click pentru a preconfirma evenimentul'
+                          : undefined
+                      }
+                    >
+                      {e.status === 'preconfirmed' ? '⏳ ' : ''}{e.title}
                       <br />
                       <span>{e.venue}</span>
                     </div>

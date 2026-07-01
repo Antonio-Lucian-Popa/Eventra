@@ -28,6 +28,28 @@ export async function sendInvitationEmail({ to, token, role }) {
   });
 }
 
+export async function sendPreconfirmationEmail({ to, clientName, eventTitle, venueName, eventDate, expiresAt }) {
+  const eventDateStr = eventDate ? new Date(eventDate).toLocaleDateString('ro-RO') : '';
+  const expiresStr = expiresAt ? new Date(expiresAt).toLocaleString('ro-RO') : '';
+  const venueLine = venueName ? ` la <strong>${venueName}</strong>` : '';
+  return sendMail({
+    to,
+    subject: `Preconfirmare rezervare - ${eventTitle}`,
+    text:
+      `Buna, ${clientName || ''}.\n\n` +
+      `Am rezervat provizoriu locul pentru evenimentul "${eventTitle}"${venueName ? ` la ${venueName}` : ''}` +
+      `${eventDateStr ? ` din data de ${eventDateStr}` : ''}.\n` +
+      `Te asteptam la locatie pentru a confirma rezervarea pana la ${expiresStr}. ` +
+      `Dupa acest termen locul poate fi realocat.\n`,
+    html:
+      `<p>Buna, ${clientName || ''}.</p>` +
+      `<p>Am rezervat provizoriu locul pentru evenimentul <strong>${eventTitle}</strong>${venueLine}` +
+      `${eventDateStr ? ` din data de <strong>${eventDateStr}</strong>` : ''}.</p>` +
+      `<p>Te asteptam la locatie pentru a confirma rezervarea pana la <strong>${expiresStr}</strong>. ` +
+      `Dupa acest termen locul poate fi realocat.</p>`,
+  });
+}
+
 export async function sendPasswordResetEmail({ to, token }) {
   const url = `${config.appUrl}/login?reset=${encodeURIComponent(token)}`;
   return sendMail({

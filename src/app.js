@@ -21,6 +21,7 @@ import paymentsRoutes from './modules/payments/payments.routes.js';
 import paymentsWebhookRoutes from './modules/payments/payments.webhook.routes.js';
 import dashboardRoutes from './modules/dashboard/dashboard.routes.js';
 import organizationRoutes from './modules/organization/organization.routes.js';
+import notificationsRoutes from './modules/notifications/notifications.routes.js';
 
 export function createApp() {
   const app = express();
@@ -57,6 +58,7 @@ export function createApp() {
   app.use('/payments', paymentsRoutes);
   app.use('/dashboard', requireRoles('admin', 'manager'), dashboardRoutes);
   app.use('/organization', organizationRoutes);
+  app.use('/notifications', notificationsRoutes);
 
   app.use(notFound);
   app.use(errorHandler);
