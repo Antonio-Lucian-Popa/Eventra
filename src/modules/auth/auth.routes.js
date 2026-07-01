@@ -27,7 +27,7 @@ const registerSchema = z.object({
   name: z.string().min(2),
   email: z.string().email().toLowerCase(),
   password: z.string().min(8),
-  role: z.enum(['admin', 'manager', 'staff']).default('staff'),
+  role: z.enum(['admin', 'manager', 'staff', 'sales', 'worker']).default('staff'),
 });
 
 const loginSchema = z.object({
@@ -40,7 +40,7 @@ const resetRequestSchema = z.object({ email: z.string().email().toLowerCase() })
 const resetConfirmSchema = z.object({ token: z.string().min(20), password: z.string().min(8) });
 const inviteSchema = z.object({
   email: z.string().email().toLowerCase(),
-  role: z.enum(['admin', 'manager', 'staff']).default('staff'),
+  role: z.enum(['admin', 'manager', 'staff', 'sales', 'worker']).default('staff'),
 });
 const acceptInviteSchema = z.object({
   token: z.string().min(20),

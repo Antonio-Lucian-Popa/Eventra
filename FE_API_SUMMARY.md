@@ -691,3 +691,85 @@ Backup:
 DATABASE_URL="postgresql://eveniment:eveniment@localhost:5432/eveniment_app" npm run backup
 ```
 
+## Flux client (preconfirmare → eveniment → contract semnat → factură)
+
+Modulele expuse în FE: **Dashboard, Calendar, Evenimente, Clienți, Contracte, Facturi** (+ Setări).
+
+### Roluri
+
+Pe lângă `admin`, `manager`, `staff` (existente), s-au adăugat rolurile cerute:
+
+- `sales` (Vânzări) — nivel `manager` (operațional + vânzări).
+- `worker` (Lucrător) — nivel `staff` (execuție + task-uri + push).
+
+Orice rută care permite `manager` permite și `sales`; orice rută care permite `staff` permite și `worker`.
+
+### 1. Preconfirmare (din Calendar)
+
+```http
+POST /events/:id/preconfirm
+```
+
+Body opțional: `{ "hours": 48 }` (implicit `PRECONFIRM_HOURS`).
+
+Setează `status = preconfirmed`, `preconfirmedAt`, `preconfirmExpiresAt` și trimite clientului un email că locul e alocat provizoriu, cu termenul limită. În calendar preconfirmările apar cu **roșu** (`status === 'preconfirmed'`).
+
+### 2. Confirmare (clientul a venit la locație)
+
+```http
+POST /events/:id/confirm
+```
+
+Setează `status = confirmed` și golește `preconfirmExpiresAt`.
+
+### 3. Contract semnat în aplicație
+
+```http
+POST /contracts/:id/sign
+```
+
+Body: `{ "signatureData": "data:image/png;base64,...", "signerName": "Nume Prenume" }`.
+
+Salvează semnătura, marchează contractul `signed` și regenerează PDF-ul cu semnătura inclusă (`fileUrl`).
+
+### 4. Factură din contract
+
+```http
+POST /contracts/:id/create-invoice
+```
+
+Creează o factură pe baza contractului (sumă din evenimentul asociat, TVA implicit).
+
+### 5. Notificări push (aplicația mobilă a lucrătorilor)
+
+```http
+POST   /notifications/devices          { "token": "...", "platform": "expo" }
+DELETE /notifications/devices/:token
+POST   /notifications/notify-tomorrow  { "date": "2026-07-02" }   // opțional; implicit mâine
+```
+
+`notify-tomorrow` trimite push (Expo Push API) tuturor membrilor **echipelor** alocate evenimentelor din ziua respectivă. Se activează cu `EXPO_PUSH_ENABLED=true`.
+
+### 6. Echipe de lucrători
+
+Lucrătorii nu se asignează individual pe eveniment; se lucrează **pe echipe**, iar fiecare echipă are un **responsabil (lead)** care coordonează restul.
+
+```http
+GET    /teams
+POST   /teams                 { "name": "Echipa A", "leadId": "uuid?" }
+GET    /teams/:id
+PATCH  /teams/:id             { "name": "...", "leadId": "uuid|null" }
+PUT    /teams/:id/members     { "userIds": ["uuid", ...] }
+DELETE /teams/:id
+
+GET    /organization/users    // useri organizație (pentru selectarea lead/membri)
+```
+
+Un user aparține unei singure echipe. La evenimente se alege echipa prin câmpul `teamId`:
+
+```http
+POST /events   { ..., "teamId": "uuid" }
+```
+
+În FE, echipele se administrează din **Setări** (creare echipă, responsabil, membri), iar evenimentul are un câmp „Echipă".
+

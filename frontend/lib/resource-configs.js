@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import StatusBadge from '../components/StatusBadge';
+import ContractSignButton from '../components/ContractSignButton';
 import { demoClients, demoEvents, demoInvoices, demoVenues } from './demo-data';
 import { apiRequest, createResource } from './api';
 
@@ -11,7 +12,7 @@ const eventTypes = [
   ['other', 'Altul'],
 ].map(([value, label]) => ({ value, label }));
 
-const eventStatuses = ['draft', 'confirmed', 'in_preparation', 'completed', 'cancelled'].map((value) => ({ value, label: value }));
+const eventStatuses = ['draft', 'preconfirmed', 'confirmed', 'in_preparation', 'completed', 'cancelled'].map((value) => ({ value, label: value }));
 const offerStatuses = ['draft', 'sent', 'accepted', 'rejected'].map((value) => ({ value, label: value }));
 const invoiceStatuses = ['unpaid', 'partially_paid', 'paid', 'cancelled'].map((value) => ({ value, label: value }));
 const paymentStatuses = ['pending', 'succeeded', 'failed', 'refunded'].map((value) => ({ value, label: value }));
@@ -33,6 +34,7 @@ export const resourceConfigs = {
       { key: 'title', label: 'Eveniment', render: (row) => <Link className="row-title" href={`/events/${row.id}`}>{row.title}</Link> },
       { key: 'client', label: 'Client', render: (row) => row.client?.fullName || row.clientId },
       { key: 'venue', label: 'Locație', render: (row) => row.venue?.name || row.venueId },
+      { key: 'team', label: 'Echipă', render: (row) => row.team?.name || '-' },
       { key: 'eventDate', label: 'Data', render: (row) => new Date(row.eventDate).toLocaleDateString('ro-RO') },
       { key: 'guestsCount', label: 'Invitați' },
       { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> },
@@ -46,6 +48,7 @@ export const resourceConfigs = {
       { name: 'startTime', label: 'Ora început', placeholder: '18:00' },
       { name: 'endTime', label: 'Ora final', placeholder: '03:00', optional: true },
       { name: 'guestsCount', label: 'Număr invitați', type: 'number' },
+      { name: 'teamId', label: 'Echipă', type: 'relation', endpoint: '/teams', labelFor: (row) => row.name, optional: true },
       { name: 'status', label: 'Status', type: 'select', options: eventStatuses, defaultValue: 'draft' },
       { name: 'totalAmount', label: 'Valoare totală', type: 'number', defaultValue: 0 },
       { name: 'depositAmount', label: 'Avans', type: 'number', defaultValue: 0 },
@@ -187,20 +190,7 @@ export const resourceConfigs = {
     ],
     rowActions: (row, reload, setError) => (
       <>
-        <button
-          className="btn"
-          type="button"
-          onClick={async () => {
-            try {
-              await apiRequest(`/contracts/${row.id}/mark-signed`, { method: 'POST', body: JSON.stringify({}) });
-              await reload();
-            } catch (err) {
-              setError(err.message);
-            }
-          }}
-        >
-          Semnează
-        </button>
+        <ContractSignButton contract={row} reload={reload} setError={setError} />
         <button
           className="btn"
           type="button"
@@ -214,6 +204,22 @@ export const resourceConfigs = {
           }}
         >
           PDF
+        </button>
+        <button
+          className="btn primary"
+          type="button"
+          onClick={async () => {
+            try {
+              await apiRequest(`/contracts/${row.id}/create-invoice`, { method: 'POST', body: JSON.stringify({}) });
+              setError('');
+              window.alert('Factura a fost generată din contract. O găsești în secțiunea Facturi.');
+              await reload();
+            } catch (err) {
+              setError(err.message);
+            }
+          }}
+        >
+          Factură
         </button>
       </>
     ),

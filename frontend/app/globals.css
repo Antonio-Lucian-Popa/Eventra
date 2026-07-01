@@ -655,6 +655,21 @@ td {
   color: #c2410c;
 }
 
+/* Preconfirmarile apar cu rosu ca sa se diferentieze de evenimentele confirmate. */
+.cal-event.preconfirmed {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+}
+
+.cal-event.clickable {
+  cursor: pointer;
+}
+
+.cal-event.clickable:hover {
+  filter: brightness(0.97);
+}
+
 .detail-grid {
   grid-template-columns: 1fr 1fr 0.72fr;
 }

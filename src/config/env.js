@@ -30,6 +30,15 @@ const schema = z.object({
   EFACTURA_API_KEY: z.string().default(''),
   EFACTURA_WEBHOOK_SECRET: z.string().optional(),
   EFACTURA_DEFAULT_VAT_RATE: z.coerce.number().min(0).max(100).default(19),
+  // Fluxul de preconfirmare: cate ore are clientul sa vina la locatie sa confirme.
+  PRECONFIRM_HOURS: z.coerce.number().int().positive().default(48),
+  // Push notifications (aplicatia mobila a lucratorilor). Foloseste Expo Push API.
+  EXPO_PUSH_ENABLED: z
+    .string()
+    .optional()
+    .transform((value) => value === 'true' || value === '1'),
+  EXPO_PUSH_URL: z.string().url().default('https://exp.host/--/api/v2/push/send'),
+  EXPO_ACCESS_TOKEN: z.string().optional(),
 });
 
 const parsed = schema.safeParse(process.env);
@@ -84,5 +93,11 @@ export const config = {
     apiKey: env.EFACTURA_API_KEY,
     webhookSecret: env.EFACTURA_WEBHOOK_SECRET,
     defaultVatRate: env.EFACTURA_DEFAULT_VAT_RATE,
+  },
+  preconfirmHours: env.PRECONFIRM_HOURS,
+  push: {
+    enabled: Boolean(env.EXPO_PUSH_ENABLED),
+    url: env.EXPO_PUSH_URL,
+    accessToken: env.EXPO_ACCESS_TOKEN,
   },
 };

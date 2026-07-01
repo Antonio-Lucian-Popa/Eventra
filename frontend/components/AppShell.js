@@ -4,15 +4,11 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
-  BarChart3,
   CalendarDays,
   ClipboardList,
-  CreditCard,
   FileText,
   Home,
-  MapPin,
   MenuSquare,
-  Package,
   Receipt,
   Settings,
   Users,
@@ -21,6 +17,8 @@ import {
 import { demoUser } from '../lib/demo-data';
 import { useAuth } from '../lib/AuthContext';
 
+// Modulele cerute de client: Dashboard, Calendar, Evenimente, Clienți, Contracte, Facturi.
+// Setări ramane pentru administrarea organizatiei si invitarea lucratorilor.
 const navItems = [
   { href: '/', label: 'Dashboard', icon: Home },
   { href: '/calendar', label: 'Calendar', icon: CalendarDays },
@@ -28,11 +26,6 @@ const navItems = [
   { href: '/clients', label: 'Clienți', icon: Users },
   { href: '/contracts', label: 'Contracte', icon: FileText },
   { href: '/invoices', label: 'Facturi', icon: Receipt },
-  { href: '/offers', label: 'Oferte', icon: MenuSquare },
-  { href: '/payments', label: 'Plăți', icon: CreditCard },
-  { href: '/venues', label: 'Locații', icon: MapPin },
-  { href: '/leads', label: 'Lead-uri', icon: Package },
-  { href: '/reports', label: 'Rapoarte', icon: BarChart3 },
   { href: '/settings', label: 'Setări', icon: Settings },
 ];
 

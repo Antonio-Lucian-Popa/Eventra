@@ -4,11 +4,12 @@ import { useEffect, useState } from 'react';
 import { Send, Save } from 'lucide-react';
 import AppShell from '../../components/AppShell';
 import PageHeader from '../../components/PageHeader';
+import TeamsManager from '../../components/TeamsManager';
 import { apiFetch, createResource, updateResource } from '../../lib/api';
 
 export default function SettingsPage() {
   const [organization, setOrganization] = useState({ name: 'Eveniment Demo', slug: 'eveniment-demo' });
-  const [invite, setInvite] = useState({ email: '', role: 'staff' });
+  const [invite, setInvite] = useState({ email: '', role: 'worker' });
   const [resetEmail, setResetEmail] = useState('');
   const [notice, setNotice] = useState('');
 
@@ -33,7 +34,7 @@ export default function SettingsPage() {
     setNotice('');
     try {
       const result = await createResource('/auth/invitations', invite);
-      setInvite({ email: '', role: 'staff' });
+      setInvite({ email: '', role: 'worker' });
       setNotice(`Invitație creată.${result.invitationToken ? ` Token demo: ${result.invitationToken}` : ''}`);
     } catch (err) {
       setNotice(err.message);
@@ -88,9 +89,9 @@ export default function SettingsPage() {
             <div className="field">
               <label>Rol</label>
               <select value={invite.role} onChange={(event) => setInvite((current) => ({ ...current, role: event.target.value }))}>
-                <option value="staff">staff</option>
-                <option value="manager">manager</option>
-                <option value="admin">admin</option>
+                <option value="worker">Lucrător</option>
+                <option value="sales">Vânzări</option>
+                <option value="admin">Admin</option>
               </select>
             </div>
             <div className="field full">
@@ -102,6 +103,8 @@ export default function SettingsPage() {
           </form>
         </section>
       </div>
+
+      <TeamsManager setNotice={setNotice} />
 
       <section className="card detail-card" style={{ marginTop: 18 }}>
         <div className="card-title">Resetare parolă</div>
