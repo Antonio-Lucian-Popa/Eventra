@@ -22,6 +22,7 @@ import paymentsWebhookRoutes from './modules/payments/payments.webhook.routes.js
 import dashboardRoutes from './modules/dashboard/dashboard.routes.js';
 import organizationRoutes from './modules/organization/organization.routes.js';
 import notificationsRoutes from './modules/notifications/notifications.routes.js';
+import teamsRoutes from './modules/teams/teams.routes.js';
 
 export function createApp() {
   const app = express();
@@ -59,6 +60,7 @@ export function createApp() {
   app.use('/dashboard', requireRoles('admin', 'manager'), dashboardRoutes);
   app.use('/organization', organizationRoutes);
   app.use('/notifications', notificationsRoutes);
+  app.use('/teams', teamsRoutes);
 
   app.use(notFound);
   app.use(errorHandler);

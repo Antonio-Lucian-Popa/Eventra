@@ -27,6 +27,7 @@ const eventSchema = z.object({
   totalAmount: money.default(0),
   depositAmount: money.default(0),
   paidAmount: money.default(0),
+  teamId: z.string().uuid().optional().nullable(),
   notes: z.string().optional().nullable(),
 });
 
@@ -58,7 +59,7 @@ router.get(
         eventDate: { gte: startDate, lte: endDate },
         ...(venueId ? { venueId } : {}),
       },
-      include: { client: true, venue: true },
+      include: { client: true, venue: true, team: { select: { id: true, name: true } } },
       orderBy: [{ eventDate: 'asc' }, { startTime: 'asc' }],
     });
     res.json({ data: events });
@@ -148,7 +149,7 @@ router.use(
     model: 'event',
     createSchema: eventSchema,
     updateSchema: partialBody(eventSchema),
-    include: { client: true, venue: true },
+    include: { client: true, venue: true, team: { select: { id: true, name: true } } },
     createData: async (body, req) => {
       await assertNoVenueConflict({ ...body, organizationId: req.user.organizationId });
       return { ...body, ...eventAmounts(body) };

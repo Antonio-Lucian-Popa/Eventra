@@ -33,6 +33,20 @@ router.patch(
 );
 
 router.get(
+  '/users',
+  requireRoles('admin', 'manager'),
+  validate({ params: z.object({}), query: listQuery.partial(), body: z.object({}).optional() }),
+  asyncHandler(async (req, res) => {
+    const users = await prisma.user.findMany({
+      where: { organizationId: req.user.organizationId, deletedAt: null },
+      select: { id: true, name: true, email: true, role: true, teamId: true },
+      orderBy: { name: 'asc' },
+    });
+    res.json({ data: users });
+  }),
+);
+
+router.get(
   '/audit-logs',
   requireRoles('admin'),
   validate({ params: z.object({}), query: listQuery, body: z.object({}).optional() }),

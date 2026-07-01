@@ -66,11 +66,22 @@ router.post(
         deletedAt: null,
         eventDate: { gte: start, lt: end },
       },
-      include: { venue: true, tasks: { where: { deletedAt: null, assignedTo: { not: null } }, select: { assignedTo: true } } },
+      include: {
+        venue: true,
+        team: {
+          select: {
+            id: true,
+            name: true,
+            leadId: true,
+            members: { where: { deletedAt: null }, select: { id: true } },
+          },
+        },
+      },
       orderBy: { startTime: 'asc' },
     });
 
-    const workerIds = [...new Set(events.flatMap((event) => event.tasks.map((task) => task.assignedTo)))];
+    // Notificam toti membrii echipelor alocate evenimentelor din ziua respectiva.
+    const workerIds = [...new Set(events.flatMap((event) => (event.team?.members || []).map((member) => member.id)))];
     const dateLabel = start.toLocaleDateString('ro-RO');
 
     if (!workerIds.length) {
@@ -79,7 +90,12 @@ router.post(
 
     const title = events.length === 1 ? `Maine lucrezi la ${events[0].title}` : `Ai ${events.length} evenimente pe ${dateLabel}`;
     const body = events
-      .map((event) => `${event.startTime ? `${event.startTime} - ` : ''}${event.title}${event.venue ? ` @ ${event.venue.name}` : ''}`)
+      .map((event) => {
+        const time = event.startTime ? `${event.startTime} - ` : '';
+        const venue = event.venue ? ` @ ${event.venue.name}` : '';
+        const team = event.team ? ` (echipa ${event.team.name})` : '';
+        return `${time}${event.title}${venue}${team}`;
+      })
       .join('\n');
 
     const result = await sendPushToUsers(workerIds, {

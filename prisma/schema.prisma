@@ -106,13 +106,32 @@ model User {
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   deletedAt           DateTime?
+  teamId              String?
   organization        Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  team                Team?                @relation("TeamMembers", fields: [teamId], references: [id], onDelete: SetNull)
+  ledTeams            Team[]               @relation("TeamLead")
   tasks               EventTask[]          @relation("AssignedTasks")
   refreshTokens       RefreshToken[]
   passwordResetTokens PasswordResetToken[]
   sentInvitations     Invitation[]         @relation("SentInvitations")
   auditLogs           AuditLog[]
   deviceTokens        DeviceToken[]
+}
+
+model Team {
+  id             String       @id @default(uuid())
+  organizationId String
+  name           String
+  leadId         String?      // responsabilul echipei (coordoneaza restul membrilor)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  lead           User?        @relation("TeamLead", fields: [leadId], references: [id], onDelete: SetNull)
+  members        User[]       @relation("TeamMembers")
+  events         Event[]
+
+  @@index([organizationId])
 }
 
 model Organization {
@@ -141,6 +160,7 @@ model Organization {
   invitations       Invitation[]
   auditLogs         AuditLog[]
   numberSequences   NumberSequence[]
+  teams             Team[]
 }
 
 model RefreshToken {
@@ -285,6 +305,7 @@ model Event {
   remainingAmount Decimal      @default(0) @db.Decimal(12, 2)
   preconfirmedAt     DateTime?
   preconfirmExpiresAt DateTime?
+  teamId          String?
   notes           String?
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
@@ -292,6 +313,7 @@ model Event {
   organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   client          Client       @relation(fields: [clientId], references: [id], onDelete: Restrict)
   venue           Venue        @relation(fields: [venueId], references: [id], onDelete: Restrict)
+  team            Team?        @relation(fields: [teamId], references: [id], onDelete: SetNull)
   offers          Offer[]
   contracts       Contract[]
   invoices        Invoice[]

@@ -748,5 +748,28 @@ DELETE /notifications/devices/:token
 POST   /notifications/notify-tomorrow  { "date": "2026-07-02" }   // opțional; implicit mâine
 ```
 
-`notify-tomorrow` trimite push (Expo Push API) lucrătorilor asignați pe task-urile evenimentelor din ziua respectivă. Se activează cu `EXPO_PUSH_ENABLED=true`.
+`notify-tomorrow` trimite push (Expo Push API) tuturor membrilor **echipelor** alocate evenimentelor din ziua respectivă. Se activează cu `EXPO_PUSH_ENABLED=true`.
+
+### 6. Echipe de lucrători
+
+Lucrătorii nu se asignează individual pe eveniment; se lucrează **pe echipe**, iar fiecare echipă are un **responsabil (lead)** care coordonează restul.
+
+```http
+GET    /teams
+POST   /teams                 { "name": "Echipa A", "leadId": "uuid?" }
+GET    /teams/:id
+PATCH  /teams/:id             { "name": "...", "leadId": "uuid|null" }
+PUT    /teams/:id/members     { "userIds": ["uuid", ...] }
+DELETE /teams/:id
+
+GET    /organization/users    // useri organizație (pentru selectarea lead/membri)
+```
+
+Un user aparține unei singure echipe. La evenimente se alege echipa prin câmpul `teamId`:
+
+```http
+POST /events   { ..., "teamId": "uuid" }
+```
+
+În FE, echipele se administrează din **Setări** (creare echipă, responsabil, membri), iar evenimentul are un câmp „Echipă".
 

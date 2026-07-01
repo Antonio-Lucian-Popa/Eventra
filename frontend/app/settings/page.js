@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Send, Save } from 'lucide-react';
 import AppShell from '../../components/AppShell';
 import PageHeader from '../../components/PageHeader';
+import TeamsManager from '../../components/TeamsManager';
 import { apiFetch, createResource, updateResource } from '../../lib/api';
 
 export default function SettingsPage() {
@@ -102,6 +103,8 @@ export default function SettingsPage() {
           </form>
         </section>
       </div>
+
+      <TeamsManager setNotice={setNotice} />
 
       <section className="card detail-card" style={{ marginTop: 18 }}>
         <div className="card-title">Resetare parolă</div>
